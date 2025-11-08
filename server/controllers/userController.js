@@ -11,9 +11,13 @@ export const registerUser=async(req,res)=>{
     try{
         const {name,email,password}=req.body
 
-        if(!name || !email || !password || password.length<8){
+        if(!name || !email || !password ){
             return res.json({success:false,message:"fill all the feilds"})
         }
+        if(password.length<6){
+            return res.json({success:false,message:"password must be at least 6 characters"})
+        }
+
 
         const userExists=await User.findOne({email})
         if (userExists){
@@ -21,7 +25,7 @@ export const registerUser=async(req,res)=>{
         }
         const hashedPassword=await bcrypt.hash(password,10)
         const user=await User.create({name,email,password:hashedPassword})
-        const token=generateToken(user._id.toString())
+        const token=generateToken({"_id":user._id.toString()})
         res.json({success:true,token})
     }
     catch(error){
@@ -42,7 +46,7 @@ try{
     if(!isMatch){
         return res.json({success:false,message:"Invalid Credentials"})
     }
-    const token=generateToken(user._id.toString())
+    const token=generateToken({"_id" : user._id.toString()})
     res.json({success:true,token})
     
 }
