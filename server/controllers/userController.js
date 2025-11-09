@@ -26,7 +26,8 @@ export const registerUser=async(req,res)=>{
         const hashedPassword=await bcrypt.hash(password,10)
         const user=await User.create({name,email,password:hashedPassword})
         const token=generateToken({"_id":user._id.toString()})
-        res.json({success:true,token})
+        
+        
     }
     catch(error){
         console.log(error.message)
@@ -48,6 +49,8 @@ try{
     }
     const token=generateToken({"_id" : user._id.toString()})
     res.json({success:true,token})
+    // console.log(token)
+    return {success:true,token}
     
 }
 catch(error){

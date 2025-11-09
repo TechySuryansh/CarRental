@@ -1,13 +1,31 @@
-import React from 'react'
+import {React,useState , useEffect} from 'react'
+import {useSelector , useDispatch} from 'react-redux'
+import { loginUser } from '../redux/Slices/AuthSlice.js';
 
 const Login = ({ setShowLogin }) => {
-    const [state, setState] = React.useState("login");
-    const [name, setName] = React.useState("");
-    const [email, setEmail] = React.useState("");
-    const [password, setPassword] = React.useState("");
+    const [state, setState] = useState("login");
+    const [name, setName] = useState("");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    
+    const {user ,loading , error} = useSelector((state) => state.auth);
+    const dispatch = useDispatch();
+    console.log(user , loading , error);
+    
     const onSubmitHandler=async(event)=>{
+        console.log('submit clicked')
         event.preventDefault();
+
+        dispatch(loginUser({email,password}))
+        // console.log(user)
+        setShowLogin(false);
     }
+    // useEffect(() => {
+    //     if (user) {
+    //         setShowLogin(false);
+    //     }
+    // }, [user]);
+
   return (
     <div onClick={()=> setShowLogin(false)} className='fixed top-0 bottom-0 left-0 right-0 z-100 flex items-center text-sm text-gray-600 bg-black/50'>
 
@@ -38,7 +56,9 @@ const Login = ({ setShowLogin }) => {
                     Create an account? <span onClick={() => setState("register")} className="text-primary cursor-pointer">click here</span>
                 </p>
             )}
-            <button className="bg-primary hover:bg-blue-800 transition-all text-white w-full py-2 rounded-md cursor-pointer">
+            <button  
+            type='submit'
+            className="bg-primary hover:bg-blue-800 transition-all text-white w-full py-2 rounded-md cursor-pointer">
                 {state === "register" ? "Create Account" : "Login"}
             </button>
         </form>
