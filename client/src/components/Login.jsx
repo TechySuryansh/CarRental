@@ -1,6 +1,6 @@
 import {React,useState , useEffect} from 'react'
 import {useSelector , useDispatch} from 'react-redux'
-import { loginUser } from '../redux/Slices/AuthSlice.js';
+import { loginUser, registerUser } from '../redux/Slices/AuthSlice.js';
 
 const Login = ({ setShowLogin }) => {
     const [state, setState] = useState("login");
@@ -8,28 +8,45 @@ const Login = ({ setShowLogin }) => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     
-    const {user ,loading , error} = useSelector((state) => state.auth);
     const dispatch = useDispatch();
-    console.log(user , loading , error);
+    const {user, loading, error} = useSelector((state) => {
+        console.log('Current Redux State:', state);
+        return state.auth;
+    });
     
-    const onSubmitHandler=async(event)=>{
-        console.log('submit clicked')
+    const onSubmitHandler = async (event) => {
         event.preventDefault();
-
-        dispatch(loginUser({email,password}))
-        // console.log(user)
-        setShowLogin(false);
+        if (state === 'login') {
+            const resultAction = await dispatch(loginUser({ email, password }));
+            if (loginUser.fulfilled.match(resultAction)) {
+                // Login successful
+            }
+        } else {
+            // Register
+            const resultAction = await dispatch(registerUser({ name, email, password }));
+            if (registerUser.fulfilled.match(resultAction)) {
+                // Registration successful, user is auto-logged in
+            }
+        }
     }
-    // useEffect(() => {
-    //     if (user) {
-    //         setShowLogin(false);
-    //     }
-    // }, [user]);
+
+    useEffect(() => {
+        if (user) {
+            setShowLogin(false);
+        }
+    }, [user, setShowLogin]);
+
+    useEffect(() => {
+        if (error) {
+            // You can add a toast notification here if you want
+            console.error('Login error:', error);
+        }
+    }, [error]);
 
   return (
     <div onClick={()=> setShowLogin(false)} className='fixed top-0 bottom-0 left-0 right-0 z-100 flex items-center text-sm text-gray-600 bg-black/50'>
-
          <form onSubmit={onSubmitHandler} onClick={(e)=>e.stopPropagation()} className="flex flex-col gap-4 m-auto items-start p-8 py-12 w-80 sm:w-[352px] text-gray-500 rounded-lg shadow-xl border border-gray-200 bg-white">
+            {error && <p className="text-red-500 w-full text-center">{error.message || 'Login failed. Please try again.'}</p>}
             <p className="text-2xl font-medium m-auto">
                 <span className="text-primary">User</span> {state === "login" ? "Login" : "Sign Up"}
             </p>
@@ -58,8 +75,9 @@ const Login = ({ setShowLogin }) => {
             )}
             <button  
             type='submit'
-            className="bg-primary hover:bg-blue-800 transition-all text-white w-full py-2 rounded-md cursor-pointer">
-                {state === "register" ? "Create Account" : "Login"}
+            disabled={loading}
+            className={`bg-primary hover:bg-blue-800 transition-all text-white w-full py-2 rounded-md ${loading ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer'}`}>
+                {loading ? 'Loading...' : state === "register" ? "Create Account" : "Login"}
             </button>
         </form>
     </div>
