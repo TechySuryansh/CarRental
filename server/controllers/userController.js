@@ -8,26 +8,25 @@ const generateToken=(userId)=>{
 }
 //register user
 export const registerUser=async(req,res)=>{
+    console.log('registerUser called');
     try{
         const {name,email,password}=req.body
-
         if(!name || !email || !password ){
             return res.json({success:false,message:"fill all the feilds"})
         }
         if(password.length<6){
             return res.json({success:false,message:"password must be at least 6 characters"})
         }
-
-
+        console.log(email)
         const userExists=await User.findOne({email})
+        console.log(userExists)
         if (userExists){
             return res.json({success:false,message:"User already Exists"})
         }
         const hashedPassword=await bcrypt.hash(password,10)
         const user=await User.create({name,email,password:hashedPassword})
         const token=generateToken({"_id":user._id.toString()})
-        
-        
+        return res.status(201).json({success:true,token})
     }
     catch(error){
         console.log(error.message)
