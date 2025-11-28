@@ -78,7 +78,7 @@
 
 // export default MyBookings
 import React, { useEffect, useState } from 'react'
-import { dummyMyBookingsData } from '../assets/assets'
+import { assets, dummyMyBookingsData } from '../assets/assets'
 import { Title } from '../components/Title'
 
 const MyBookings = () => {
@@ -149,6 +149,38 @@ const MyBookings = () => {
                     {status}
                   </p>
                 </div>
+                <div className='flex items-start gap-2 mt-3'>
+                <img src={assets.calendar_icon_colored} alt="" className='w-4 h-4 mt-1'/>
+                <div>
+                  <p className='text-gray-500'>Rental Period</p>
+                  <p>
+                    {booking.pickupDate?.split('T')[0]} 
+                    &nbsp;to&nbsp; 
+                    {booking.returnDate?.split('T')[0]}
+                  </p>
+                </div>
+              </div>
+
+              <div className='flex items-start gap-2 mt-3'>
+                <img src={assets.location_icon_colored} alt="" className='w-4 h-4 mt-1'/>
+                <div>
+                  <p className='text-gray-500'>Pickup Location</p>
+                  <p>
+                    {booking.car.location?.split('T')[0]} 
+  
+                  </p>
+                </div>
+              </div>
+
+
+              </div>
+
+              {/*price details */ }
+              <div className='ml-auto text-right'>
+                <p className='text-gray-500'>Total Price</p>
+                <p className='text-xl font-semibold'>
+                  {car.pricePerDay ? `$${car.pricePerDay} USD` : 'N/A'}
+                </p>
               </div>
             </div>
           )

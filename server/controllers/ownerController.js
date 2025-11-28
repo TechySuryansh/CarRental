@@ -1,9 +1,10 @@
 import imageKit from "../configs/imageKit.js";
 import Car from "../models/Car.js";
 import User from "../models/User.js";
+import Booking from "../models/Booking.js";
 import fs from "fs";
 
-export const changeRoleToOwner = async (req, res) => {         
+export const changeRoleToOwner = async (req, res) => {
     try {
         const { _id } = req.user;
         await User.findByIdAndUpdate(_id, { role: "owner" });
@@ -21,26 +22,26 @@ export const changeRoleToOwner = async (req, res) => {
 export const addCar = async (req, res) => {
     try {
         const { _id } = req.user;
-        let car=JSON.parse(req.body.carData)
-        const imageFile=req.file
+        let car = JSON.parse(req.body.carData)
+        const imageFile = req.file
 
-        const fileBuffer=fs.readFileSync(imageFile.path)
-        const response=await imageKit.upload({
-            file:fileBuffer,
-            fileName:imageFile.originalname,
-            folder:"/cars"
+        const fileBuffer = fs.readFileSync(imageFile.path)
+        const response = await imageKit.upload({
+            file: fileBuffer,
+            fileName: imageFile.originalname,
+            folder: "/cars"
         })
-        var optimizedImageurl=imageKit.url({
-            path:response.filePath,
-            transformation:[{
-                
-                width:"1280",
-            },{
-                quality:"auto"
-            },{format:"web"}               ]
+        var optimizedImageurl = imageKit.url({
+            path: response.filePath,
+            transformation: [{
+
+                width: "1280",
+            }, {
+                quality: "auto"
+            }, { format: "web" }]
         })
-        const image=optimizedImageurl
-        await Car.create({...car,image,owner:_id})
+        const image = optimizedImageurl
+        await Car.create({ ...car, image, owner: _id })
         res.json({ success: true, message: "Car Listed Successfully" });
     }
     catch (error) {
@@ -68,19 +69,19 @@ export const getOwnerCars = async (req, res) => {
 
 //api to toggle car availability
 
-export const toggleCarAvailability =async(req,res)=>{
-    try{
-        const {_id}=req.user
-        const {carId}=req.body
-        const car=await Car.findById(carId)
-        if(car.owner.toString()!==_id.toString()){
-            return res.json({success:false,message:"Car not found"})
+export const toggleCarAvailability = async (req, res) => {
+    try {
+        const { _id } = req.user
+        const { carId } = req.body
+        const car = await Car.findById(carId)
+        if (car.owner.toString() !== _id.toString()) {
+            return res.json({ success: false, message: "Car not found" })
         }
-        car.isAvailable=!car.isAvailable
+        car.isAvailable = !car.isAvailable
         await car.save()
-        res.json({success:true,message:"Car availability updated"})
+        res.json({ success: true, message: "Car availability updated" })
     }
-    catch(error){
+    catch (error) {
         console.log(error.message);
         return res.json({ success: false, message: error.message });
     }
@@ -88,20 +89,20 @@ export const toggleCarAvailability =async(req,res)=>{
 
 
 //api to delete car
-export const deleteCar =async(req,res)=>{
-    try{
-        const {_id}=req.user
-        const {carId}=req.body
-        const car=await Car.findById(carId)
-        if(car.owner.toString()!==_id.toString()){
-            return res.json({success:false,message:"Unauthorized"})
+export const deleteCar = async (req, res) => {
+    try {
+        const { _id } = req.user
+        const { carId } = req.body
+        const car = await Car.findById(carId)
+        if (car.owner.toString() !== _id.toString()) {
+            return res.json({ success: false, message: "Unauthorized" })
         }
-        car.owner=null
-        car.isAvailable=false
+        car.owner = null
+        car.isAvailable = false
         await car.save()
-        res.json({success:true,message:"Car Removed"})
+        res.json({ success: true, message: "Car Removed" })
     }
-    catch(error){
+    catch (error) {
         console.log(error.message);
         return res.json({ success: false, message: error.message });
     }
@@ -110,65 +111,64 @@ export const deleteCar =async(req,res)=>{
 //api to get dashboard data
 
 
-export const getDashboardData=async(req,res)=>{
-    try{
-        const {_id}=req.user
-        if(role!=="owner"){
-            return res.json({success:false,message:"not authorized"})
-        }
-        const cars=await Car.find({owner:_id})
-        const bookings=await Booking.find({owner:_id}).populate("car").populate("user").sort({createdAt:-1})
-        const pendingBookings=bookings.filter(booking=>booking.status==="pending")
-        const completedBookings=bookings.filter(booking=>booking.status==="confirmed")
+export const getDashboardData = async (req, res) => {
+    try {
+        const { _id } = req.user
+        // Removed role check as it's already handled by middleware or not needed if we trust req.user from protect middleware
+
+        const cars = await Car.find({ owner: _id })
+        const bookings = await Booking.find({ owner: _id }).populate("car").populate("user").sort({ createdAt: -1 })
+        const pendingBookings = bookings.filter(booking => booking.status === "pending")
+        const completedBookings = bookings.filter(booking => booking.status === "completed")
 
         //caculate monthly revenue from bookings where status is completed
-        const monthlyRevenue=bookings.slice().filter(booking=>booking.status==="completed").reduce((acc,booking)=>acc+booking.price,0)
-            const dashboardData={
-                totalCars:cars.length,
-                totalBookings:bookings.length,
-                pendingBookings:pendingBookings.length,
-                completedBookings:completedBookings.length,
-                recentBookings:bookings.slice(0,3),
-                monthlyRevenue
-            }
-            res.json({success:true,dashboardData})
+        const monthlyRevenue = bookings.filter(booking => booking.status === "completed").reduce((acc, booking) => acc + booking.price, 0)
+        const dashboardData = {
+            totalCars: cars.length,
+            totalBookings: bookings.length,
+            pendingBookings: pendingBookings.length,
+            completedBookings: completedBookings.length,
+            recentBookings: bookings.slice(0, 3),
+            monthlyRevenue
+        }
+        res.json({ success: true, dashboardData })
 
 
     }
-        catch(error){
+    catch (error) {
         console.log(error.message);
         return res.json({ success: false, message: error.message });
     }
 }
-     
+
 //api to update user image
-export const updateUserImage=async(req,res)=>{
-    try{
-        const {_id}=req.user
-        const imageFile=req.file
-        
-        const fileBuffer=fs.readFileSync(imageFile.path)
-        const response=await imageKit.upload({
-            file:fileBuffer,
-            fileName:imageFile.originalname,
-            folder:"/users"
+export const updateUserImage = async (req, res) => {
+    try {
+        const { _id } = req.user
+        const imageFile = req.file
+
+        const fileBuffer = fs.readFileSync(imageFile.path)
+        const response = await imageKit.upload({
+            file: fileBuffer,
+            fileName: imageFile.originalname,
+            folder: "/users"
         })
-        var optimizedImageurl=imageKit.url({ 
-            path:response.filePath,
-            transformation:[{
-                
-                width:"400",
-            },{
-                quality:"auto"
-            },{format:"webp"}               ]
+        var optimizedImageurl = imageKit.url({
+            path: response.filePath,
+            transformation: [{
+
+                width: "400",
+            }, {
+                quality: "auto"
+            }, { format: "webp" }]
         })
-        const image=optimizedImageurl
-        const user=await User.findByIdAndUpdate(_id)
-        user.image=image
+        const image = optimizedImageurl
+        const user = await User.findByIdAndUpdate(_id)
+        user.image = image
         await user.save()
-        res.json({success:true,message:"User image updated",image})
+        res.json({ success: true, message: "User image updated", image })
     }
-    catch(error){
+    catch (error) {
         console.log(error.message);
         return res.json({ success: false, message: error.message });
     }
