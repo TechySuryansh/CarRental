@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import { FaCar, FaCalendarCheck, FaMoneyBillWave, FaClock } from 'react-icons/fa';
+import { ownerAPI } from '../../services/api';
 
 export const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState(null);
@@ -12,10 +12,7 @@ export const Dashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:3000/api/owner/dashboard-data', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await ownerAPI.getDashboardData();
       if (response.data.success) {
         setDashboardData(response.data.dashboardData);
       }

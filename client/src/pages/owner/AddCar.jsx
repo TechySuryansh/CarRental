@@ -1,20 +1,21 @@
 import React, { useState } from 'react';
-import axios from 'axios';
-import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import { assets } from '../../assets/assets';
+import { ownerAPI } from '../../services/api';
 
 export const AddCar = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [image, setImage] = useState(null);
   const [formData, setFormData] = useState({
-    name: '',
+    model: '',
     brand: '',
+    year: new Date().getFullYear(),
+    category: 'Sedan',
     pricePerDay: '',
     transmission: 'Manual',
-    fuelType: 'Petrol',
-    seats: 4,
+    fuel_type: 'Petrol',
+    seating_capacity: 4,
     location: '',
     description: ''
   });
@@ -30,33 +31,27 @@ export const AddCar = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!image) {
-      toast.error('Please select an image');
+      alert('Please select an image');
       return;
     }
 
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
       const data = new FormData();
       data.append('image', image);
       data.append('carData', JSON.stringify(formData));
 
-      const response = await axios.post('http://localhost:3000/api/owner/add-car', data, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
-        }
-      });
+      const response = await ownerAPI.addCar(data);
 
       if (response.data.success) {
-        toast.success('Car added successfully');
+        alert('Car added successfully');
         navigate('/owner/manage-cars');
       } else {
-        toast.error(response.data.message);
+        alert(response.data.message);
       }
     } catch (error) {
       console.error('Error adding car:', error);
-      toast.error('Failed to add car');
+      alert('Failed to add car');
     } finally {
       setLoading(false);
     }
@@ -93,8 +88,8 @@ export const AddCar = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Model Name</label>
                   <input
                     type="text"
-                    name="name"
-                    value={formData.name}
+                    name="model"
+                    value={formData.model}
                     onChange={handleChange}
                     className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all outline-none bg-gray-50 focus:bg-white"
                     placeholder="e.g. Camry"
@@ -105,16 +100,52 @@ export const AddCar = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Price per Day (₹)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Year</label>
+                  <input
+                    type="number"
+                    name="year"
+                    value={formData.year}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all outline-none bg-gray-50 focus:bg-white"
+                    placeholder="2024"
+                    min="1900"
+                    max={new Date().getFullYear() + 1}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                  <select
+                    name="category"
+                    value={formData.category}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all outline-none bg-gray-50 focus:bg-white appearance-none"
+                  >
+                    <option value="Sedan">Sedan</option>
+                    <option value="SUV">SUV</option>
+                    <option value="Hatchback">Hatchback</option>
+                    <option value="Coupe">Coupe</option>
+                    <option value="Convertible">Convertible</option>
+                    <option value="Wagon">Wagon</option>
+                    <option value="Van">Van</option>
+                    <option value="Truck">Truck</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Price per Day ($)</label>
                   <div className="relative">
-                    <span className="absolute left-4 top-3.5 text-gray-500">₹</span>
+                    <span className="absolute left-4 top-3.5 text-gray-500">$</span>
                     <input
                       type="number"
                       name="pricePerDay"
                       value={formData.pricePerDay}
                       onChange={handleChange}
                       className="w-full pl-8 pr-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all outline-none bg-gray-50 focus:bg-white"
-                      placeholder="2000"
+                      placeholder="50"
+                      min="1"
                       required
                     />
                   </div>
@@ -127,7 +158,7 @@ export const AddCar = () => {
                     value={formData.location}
                     onChange={handleChange}
                     className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all outline-none bg-gray-50 focus:bg-white"
-                    placeholder="e.g. Mumbai"
+                    placeholder="e.g. New York"
                     required
                   />
                 </div>
@@ -149,8 +180,8 @@ export const AddCar = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Fuel Type</label>
                   <select
-                    name="fuelType"
-                    value={formData.fuelType}
+                    name="fuel_type"
+                    value={formData.fuel_type}
                     onChange={handleChange}
                     className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all outline-none bg-gray-50 focus:bg-white appearance-none"
                   >
@@ -163,8 +194,8 @@ export const AddCar = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Seats</label>
                   <select
-                    name="seats"
-                    value={formData.seats}
+                    name="seating_capacity"
+                    value={formData.seating_capacity}
                     onChange={handleChange}
                     className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all outline-none bg-gray-50 focus:bg-white appearance-none"
                   >

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { toast } from 'react-toastify';
+import { bookingAPI } from '../../services/api';
 
 const ManageBookings = () => {
   const [bookings, setBookings] = useState([]);
@@ -13,16 +12,13 @@ const ManageBookings = () => {
 
   const fetchBookings = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:3000/api/booking/owner-bookings', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await bookingAPI.getOwnerBookings();
       if (response.data.success) {
         setBookings(response.data.bookings);
       }
     } catch (error) {
       console.error('Error fetching bookings:', error);
-      toast.error('Failed to fetch bookings');
+      alert('Failed to fetch bookings');
     } finally {
       setLoading(false);
     }
@@ -30,19 +26,15 @@ const ManageBookings = () => {
 
   const handleStatusChange = async (bookingId, newStatus) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.post('http://localhost:3000/api/booking/change-booking-status',
-        { bookingId, status: newStatus },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await bookingAPI.changeBookingStatus(bookingId, newStatus);
 
       if (response.data.success) {
-        toast.success('Booking status updated');
+        alert('Booking status updated');
         fetchBookings();
       }
     } catch (error) {
       console.error('Error updating status:', error);
-      toast.error('Failed to update status');
+      alert('Failed to update status');
     }
   };
 

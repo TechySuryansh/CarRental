@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { toast } from 'react-toastify';
 import { FaEdit, FaTrash, FaToggleOn, FaToggleOff } from 'react-icons/fa';
+import { ownerAPI } from '../../services/api';
 
 const ManageCars = () => {
   const [cars, setCars] = useState([]);
@@ -13,16 +12,13 @@ const ManageCars = () => {
 
   const fetchCars = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:3000/api/owner/cars', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await ownerAPI.getCars();
       if (response.data.success) {
         setCars(response.data.cars);
       }
     } catch (error) {
       console.error('Error fetching cars:', error);
-      toast.error('Failed to fetch cars');
+      alert('Failed to fetch cars');
     } finally {
       setLoading(false);
     }
@@ -30,19 +26,15 @@ const ManageCars = () => {
 
   const handleToggleAvailability = async (carId) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.post('http://localhost:3000/api/owner/toggle-car',
-        { carId },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await ownerAPI.toggleCarAvailability(carId);
 
       if (response.data.success) {
-        toast.success(response.data.message);
+        alert(response.data.message);
         fetchCars();
       }
     } catch (error) {
       console.error('Error toggling availability:', error);
-      toast.error('Failed to update availability');
+      alert('Failed to update availability');
     }
   };
 
@@ -50,19 +42,15 @@ const ManageCars = () => {
     if (!window.confirm('Are you sure you want to delete this car?')) return;
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.post('http://localhost:3000/api/owner/delete-car',
-        { carId },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await ownerAPI.deleteCar(carId);
 
       if (response.data.success) {
-        toast.success('Car deleted successfully');
+        alert('Car deleted successfully');
         fetchCars();
       }
     } catch (error) {
       console.error('Error deleting car:', error);
-      toast.error('Failed to delete car');
+      alert('Failed to delete car');
     }
   };
 

@@ -76,11 +76,13 @@ export const getOwnerCars = async (req, res) => {
 //api to get all available cars (public)
 export const getAllAvailableCars = async (req, res) => {
     try {
+        console.log('Fetching all available cars...');
         const cars = await Car.find({ isAvailable: true, owner: { $ne: null } });
+        console.log(`Found ${cars.length} cars`);
         res.json({ success: true, cars });
     }
     catch (error) {
-        console.log(error.message);
+        console.log('Error in getAllAvailableCars:', error.message);
         return res.json({ success: false, message: error.message });
     }
 }

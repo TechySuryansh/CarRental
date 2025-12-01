@@ -1,7 +1,9 @@
-import React from 'react'
 import { assets } from '../assets/assets'
+import { useNavigate } from 'react-router-dom'
 
 export const Banner = () => {
+  const navigate = useNavigate()
+  
   return (
     <div className='flex flex-col md:flex-row items-center md:items-start justify-between px-10 md:px-16 py-12 bg-gradient-to-r from-[#0541E5] to-[#6EB3FF] max-w-6xl mx-auto rounded-3xl shadow-xl overflow-hidden'>
 
@@ -19,7 +21,11 @@ export const Banner = () => {
               We handle insurance, driver verification, customer support, and secure payments — so you earn passive income stress-free.
             </p>
 
-            <button className='mt-6 bg-white text-[#0541E5] font-semibold px-7 py-3.5 rounded-xl hover:bg-blue-50 transition-all duration-300 shadow-md hover:shadow-xl active:scale-95'>
+            <button 
+              className='mt-6 bg-white text-[#0541E5] font-semibold px-7 py-3.5 rounded-xl hover:bg-blue-50 transition-all duration-300 shadow-md hover:shadow-xl active:scale-95' 
+              onClick={() => navigate('/owner')}
+              type="button"
+            >
                 List Your Car
             </button>
         </div>
