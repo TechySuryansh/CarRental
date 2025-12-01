@@ -8,15 +8,22 @@
 import multer from "multer";
 import path from "path";
 import { fileURLToPath } from "url";
+import fs from "fs";
 
 // ES module fix for __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Ensure uploads directory exists
+const uploadsDir = path.join(__dirname, "../uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
 // ✅ Define proper storage configuration
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, path.join(__dirname, "../uploads")); // Folder where files will be saved
+    cb(null, uploadsDir); // Folder where files will be saved
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + "-" + file.originalname); // Rename file to avoid collisions

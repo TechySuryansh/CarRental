@@ -34,18 +34,25 @@ export const addCar = async (req, res) => {
         var optimizedImageurl = imageKit.url({
             path: response.filePath,
             transformation: [{
-
                 width: "1280",
             }, {
                 quality: "auto"
             }, { format: "web" }]
         })
         const image = optimizedImageurl
+        
+        // Delete temporary file after successful upload
+        fs.unlinkSync(imageFile.path)
+        
         await Car.create({ ...car, image, owner: _id })
         res.json({ success: true, message: "Car Listed Successfully" });
     }
     catch (error) {
         console.log(error.message);
+        // Clean up file if upload failed
+        if (req.file && fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path)
+        }
         return res.json({ success: false, message: error.message });
     }
 }
@@ -58,6 +65,18 @@ export const getOwnerCars = async (req, res) => {
     try {
         const { _id } = req.user;
         const cars = await Car.find({ owner: _id });
+        res.json({ success: true, cars });
+    }
+    catch (error) {
+        console.log(error.message);
+        return res.json({ success: false, message: error.message });
+    }
+}
+
+//api to get all available cars (public)
+export const getAllAvailableCars = async (req, res) => {
+    try {
+        const cars = await Car.find({ isAvailable: true, owner: { $ne: null } });
         res.json({ success: true, cars });
     }
     catch (error) {
@@ -163,6 +182,10 @@ export const updateUserImage = async (req, res) => {
             }, { format: "webp" }]
         })
         const image = optimizedImageurl
+        
+        // Delete temporary file after successful upload
+        fs.unlinkSync(imageFile.path)
+        
         const user = await User.findByIdAndUpdate(_id)
         user.image = image
         await user.save()
@@ -170,6 +193,10 @@ export const updateUserImage = async (req, res) => {
     }
     catch (error) {
         console.log(error.message);
+        // Clean up file if upload failed
+        if (req.file && fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path)
+        }
         return res.json({ success: false, message: error.message });
     }
 }

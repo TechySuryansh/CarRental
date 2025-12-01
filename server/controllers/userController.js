@@ -64,7 +64,7 @@ catch(error){
 export const getUserData=async(req,res)=>{
     try{
         const {user}=req;
-        res.json({sucess:true,user})
+        res.json({success:true,user})
 
     }
     catch(error){

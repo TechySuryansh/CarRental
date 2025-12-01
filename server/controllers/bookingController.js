@@ -25,7 +25,7 @@ export const checkAvailability=async(Car,pickupDate,returnDate)=>{
 
             })
 
-            const availableCars=await Promise.all(availableCarsPromises)
+            let availableCars=await Promise.all(availableCarsPromises)
             availableCars=availableCars.filter(car=>car.isAvailable===true)
             res.json({success:true,cars:availableCars})
         }
@@ -49,15 +49,15 @@ export const checkAvailability=async(Car,pickupDate,returnDate)=>{
                 return res.json({success:false,message:"Car not available for the selected dates"})
             }
 
-            const carData=await Car.findById(car)
+            const carData=await Car.findById(carId)
 
             //calculate price based on no of days
             const picked=new Date(pickupDate)
             const returned=new Date(returnDate)
             const noOfDays=Math.ceil((returned-picked)/(1000*60*60*24))+1
             const price=carData.pricePerDay*noOfDays
-            const booking=await Booking.create({car,owner:carData.owner,user:_id,pickupDate,returnDate,price})
-            res.json({success:true,booking})
+            const booking=await Booking.create({car:carId,owner:carData.owner,user:_id,pickupDate,returnDate,price,totalAmount:price})
+            res.json({success:true,booking,message:"Booking created successfully"})
         }
         catch(error){
             console.log(error.message)
