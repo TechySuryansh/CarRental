@@ -3,9 +3,9 @@ import Car from "../models/Car.js"
 
 //function to check car availability and create booking
 
-export const checkAvailability=async(Car,pickupDate,returnDate)=>{
+export const checkAvailability=async(carId,pickupDate,returnDate)=>{
     //check if car is available in the given date range
-    const bookings=await Booking.find({car,
+    const bookings=await Booking.find({car:carId,
         pickupDate:{$lt:returnDate},
         returnDate:{$gt:pickupDate}
     })
@@ -120,5 +120,30 @@ export const changeBookingStatus=async(req,res)=>{
         return res.json({success:false,message:error.message})
         
     }
-}   
+}
+
+//api to delete booking (cancel booking by user)
+
+export const deleteBooking=async(req,res)=>{
+    try{
+        const {_id}=req.user
+        const {bookingId}=req.body
+        const booking=await Booking.findById(bookingId)
+        if(!booking){
+            return res.json({success:false,message:"Booking not found"})
+        }
+        if(booking.user.toString()!==_id.toString()){
+            return res.json({success:false,message:"Not authorized"})
+        }
+        if(booking.status==="completed"){
+            return res.json({success:false,message:"Cannot delete completed booking"})
+        }
+        await booking.deleteOne()
+        res.json({success:true,message:"Booking cancelled successfully"})
+    }
+    catch(error){
+        console.log(error.message)
+        return res.json({success:false,message:error.message})
+    }
+}
 

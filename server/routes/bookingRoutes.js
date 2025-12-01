@@ -4,8 +4,8 @@ import { protect } from "../middleware/auth.js";
 import { createBooking } from "../controllers/bookingController.js";
 import { getUserBookings } from "../controllers/bookingController.js";
 import { getOwnerBookings } from "../controllers/bookingController.js";
-
 import { changeBookingStatus } from "../controllers/bookingController.js";
+import { deleteBooking } from "../controllers/bookingController.js";
 
 
 const bookingRouter=express.Router()
@@ -16,6 +16,7 @@ bookingRouter.post('/create-booking',protect,createBooking)
 bookingRouter.get('/user-bookings',protect,getUserBookings)
 bookingRouter.get('/owner-bookings',protect,getOwnerBookings)
 bookingRouter.post('/change-booking-status',protect,changeBookingStatus)
+bookingRouter.post('/delete-booking',protect,deleteBooking)
 
 
 export default bookingRouter
