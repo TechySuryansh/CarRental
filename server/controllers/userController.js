@@ -10,7 +10,7 @@ const generateToken=(userId)=>{
 export const registerUser=async(req,res)=>{
     console.log('registerUser called with:', req.body);
     try{
-        const {name,email,password}=req.body
+        const {name,email,password,role}=req.body
         if(!name || !email || !password ){
             return res.json({success:false,message:"Please fill all the fields"})
         }
@@ -24,8 +24,9 @@ export const registerUser=async(req,res)=>{
         }
         console.log('Creating new user...')
         const hashedPassword=await bcrypt.hash(password,10)
-        const user=await User.create({name,email,password:hashedPassword,role:'user'})
-        console.log('User created:', user._id)
+        const userRole = role === 'owner' ? 'owner' : 'user'
+        const user=await User.create({name,email,password:hashedPassword,role:userRole})
+        console.log('User created:', user._id, 'with role:', userRole)
         const token=generateToken({"_id":user._id.toString()})
         return res.status(201).json({success:true,token,message:"Account created successfully"})
     }

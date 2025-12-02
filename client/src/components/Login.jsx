@@ -7,6 +7,7 @@ const Login = ({ setShowLogin }) => {
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [role, setRole] = useState("user");
     
     const dispatch = useDispatch();
     const {user, loading, error} = useSelector((state) => {
@@ -23,7 +24,7 @@ const Login = ({ setShowLogin }) => {
             }
         } else {
             // Register
-            const resultAction = await dispatch(registerUser({ name, email, password }));
+            const resultAction = await dispatch(registerUser({ name, email, password, role }));
             if (registerUser.fulfilled.match(resultAction)) {
                 // Registration successful, user is auto-logged in
             }
@@ -51,10 +52,19 @@ const Login = ({ setShowLogin }) => {
                 <span className="text-primary">User</span> {state === "login" ? "Login" : "Sign Up"}
             </p>
             {state === "register" && (
-                <div className="w-full">
-                    <p>Name</p>
-                    <input onChange={(e) => setName(e.target.value)} value={name} placeholder="type here" className="border border-gray-200 rounded w-full p-2 mt-1 outline-primary" type="text" required />
-                </div>
+                <>
+                    <div className="w-full">
+                        <p>Name</p>
+                        <input onChange={(e) => setName(e.target.value)} value={name} placeholder="type here" className="border border-gray-200 rounded w-full p-2 mt-1 outline-primary" type="text" required />
+                    </div>
+                    <div className="w-full">
+                        <p>Register as</p>
+                        <select onChange={(e) => setRole(e.target.value)} value={role} className="border border-gray-200 rounded w-full p-2 mt-1 outline-primary">
+                            <option value="user">Customer</option>
+                            <option value="owner">Car Owner</option>
+                        </select>
+                    </div>
+                </>
             )}
             <div className="w-full ">
                 <p>Email</p>

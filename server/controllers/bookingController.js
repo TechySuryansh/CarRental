@@ -50,6 +50,10 @@ export const checkAvailability=async(carId,pickupDate,returnDate)=>{
             }
 
             const carData=await Car.findById(carId)
+            
+            if(!carData){
+                return res.json({success:false,message:"Car not found"})
+            }
 
             //calculate price based on no of days
             const picked=new Date(pickupDate)
@@ -57,6 +61,7 @@ export const checkAvailability=async(carId,pickupDate,returnDate)=>{
             const noOfDays=Math.ceil((returned-picked)/(1000*60*60*24))+1
             const price=carData.pricePerDay*noOfDays
             const booking=await Booking.create({car:carId,owner:carData.owner,user:_id,pickupDate,returnDate,price,totalAmount:price})
+            console.log('Booking created:', {bookingId: booking._id, owner: carData.owner, user: _id})
             res.json({success:true,booking,message:"Booking created successfully"})
         }
         catch(error){
@@ -87,11 +92,14 @@ export const getUserBookings=async(req,res)=>{
 
 export const getOwnerBookings=async(req,res)=>{
     try{
+        console.log('Getting owner bookings for user:', req.user._id, 'role:', req.user.role)
+        
         if(req.user.role!=="owner"){
             return res.json({success:false,message:"not authorized"})
         }
 
         const bookings=await Booking.find({owner:req.user._id}).populate("car").populate("user").sort({createdAt:-1})
+        console.log('Found bookings:', bookings.length)
         res.json({success:true,bookings})       
     }
     catch(error){
