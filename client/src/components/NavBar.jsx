@@ -7,6 +7,7 @@ import { logout } from '../redux/Slices/AuthSlice'
 export const NavBar = ({ setShowLogin }) => {
   const location = useLocation()
   const [open, setOpen] = useState(false)
+  const [showDropdown, setShowDropdown] = useState(false)
   const navigate = useNavigate()
   const dispatch = useDispatch()
   const { user } = useSelector((state) => state.auth)
@@ -36,15 +37,64 @@ export const NavBar = ({ setShowLogin }) => {
           <img src={assets.search_icon} alt="search" />
         </div>
         <div className='flex max-sm:flex-col items-start sm:items-center gap-6'>
-          <button onClick={() => navigate('/owner')}
-            className='cursor-pointer'>Dashboard</button>
+          {user && user.role === 'owner' && (
+            <button onClick={() => navigate('/owner')}
+              className='cursor-pointer hover:text-primary transition-all'>Dashboard</button>
+          )}
           {user ? (
-            <button
-              onClick={handleLogout}
-              className='cursor-pointer px-8 py-2 bg-red-500 hover:bg-red-600 transition-all text-white rounded-lg'
-            >
-              Logout
-            </button>
+            <div className='relative'>
+              <button 
+                onClick={() => setShowDropdown(!showDropdown)}
+                className='flex items-center gap-2 cursor-pointer hover:opacity-80 transition-all'
+              >
+                <div className='w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center font-semibold'>
+                  {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                </div>
+                <span className='max-sm:inline hidden sm:inline'>{user.name}</span>
+                <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 9l-7 7-7-7' />
+                </svg>
+              </button>
+              
+              {showDropdown && (
+                <div className='absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50'>
+                  <div className='px-4 py-2 border-b border-gray-200'>
+                    <p className='font-semibold text-gray-800'>{user.name}</p>
+                    <p className='text-xs text-gray-500'>{user.email}</p>
+                    <p className='text-xs text-blue-600 mt-1 capitalize'>{user.role}</p>
+                  </div>
+                  <button 
+                    onClick={() => {
+                      navigate('/my-bookings')
+                      setShowDropdown(false)
+                    }}
+                    className='w-full text-left px-4 py-2 hover:bg-gray-100 transition-all'
+                  >
+                    My Bookings
+                  </button>
+                  {user.role === 'owner' && (
+                    <button 
+                      onClick={() => {
+                        navigate('/owner')
+                        setShowDropdown(false)
+                      }}
+                      className='w-full text-left px-4 py-2 hover:bg-gray-100 transition-all'
+                    >
+                      Owner Dashboard
+                    </button>
+                  )}
+                  <button 
+                    onClick={() => {
+                      handleLogout()
+                      setShowDropdown(false)
+                    }}
+                    className='w-full text-left px-4 py-2 hover:bg-red-50 text-red-600 transition-all'
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
           ) :
             <button onClick={() => setShowLogin(true)} className='cursor-pointer px-8 py-2 bg-primary hover:bg-primary-dull transition-all text-white rounded-lg'>
               Login
