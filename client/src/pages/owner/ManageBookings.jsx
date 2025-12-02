@@ -26,15 +26,19 @@ const ManageBookings = () => {
 
   const handleStatusChange = async (bookingId, newStatus) => {
     try {
+      console.log('Changing status:', bookingId, newStatus);
       const response = await bookingAPI.changeBookingStatus(bookingId, newStatus);
+      console.log('Response:', response.data);
 
       if (response.data.success) {
-        alert('Booking status updated');
+        alert('Booking status updated successfully!');
         fetchBookings();
+      } else {
+        alert('Error: ' + (response.data.message || 'Failed to update'));
       }
     } catch (error) {
       console.error('Error updating status:', error);
-      alert('Failed to update status');
+      alert('Failed to update status: ' + (error.response?.data?.message || error.message));
     }
   };
 
@@ -88,10 +92,10 @@ const ManageBookings = () => {
                 <tr key={booking._id} className="hover:bg-gray-50">
                   <td className="px-6 py-4">
                     <div className="flex items-center">
-                      <img className="h-12 w-12 rounded-lg object-cover" src={booking.car.image} alt="" />
+                      <img className="h-12 w-12 rounded-lg object-cover" src={booking.car?.image} alt="" />
                       <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">{booking.car.name}</div>
-                        <div className="text-sm text-gray-500">{booking.car.brand}</div>
+                        <div className="text-sm font-medium text-gray-900">{booking.car?.brand} {booking.car?.model}</div>
+                        <div className="text-sm text-gray-500">{booking.car?.category}</div>
                       </div>
                     </div>
                   </td>
