@@ -8,29 +8,30 @@ const generateToken=(userId)=>{
 }
 //register user
 export const registerUser=async(req,res)=>{
-    console.log('registerUser called');
+    console.log('registerUser called with:', req.body);
     try{
         const {name,email,password}=req.body
         if(!name || !email || !password ){
-            return res.json({success:false,message:"fill all the feilds"})
+            return res.json({success:false,message:"Please fill all the fields"})
         }
         if(password.length<6){
-            return res.json({success:false,message:"password must be at least 6 characters"})
+            return res.json({success:false,message:"Password must be at least 6 characters"})
         }
-        console.log(email)
+        console.log('Checking if user exists:', email)
         const userExists=await User.findOne({email})
-        console.log(userExists)
         if (userExists){
-            return res.json({success:false,message:"User already Exists"})
+            return res.json({success:false,message:"User already exists with this email"})
         }
+        console.log('Creating new user...')
         const hashedPassword=await bcrypt.hash(password,10)
-        const user=await User.create({name,email,password:hashedPassword})
+        const user=await User.create({name,email,password:hashedPassword,role:'user'})
+        console.log('User created:', user._id)
         const token=generateToken({"_id":user._id.toString()})
-        return res.status(201).json({success:true,token})
+        return res.status(201).json({success:true,token,message:"Account created successfully"})
     }
     catch(error){
-        console.log(error.message)
-        return res.json({success:false,message:error.message})
+        console.error('Registration error:', error)
+        return res.json({success:false,message:error.message || "Registration failed"})
     }
 }
 

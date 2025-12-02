@@ -79,7 +79,7 @@ const dummyCars = [
         fuel_type: "Petrol",
         pricePerDay: 75,
         transmission: "Manual",
-        image: "https://images.unsplash.com/photo-1584345604476-8ec5f5d3e0c0?w=800&auto=format&fit=crop",
+        image: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&auto=format&fit=crop&q=80",
         location: "Miami",
         description: "Iconic sports car with thrilling performance. Perfect for weekend getaways and special events.",
         isAvailable: true
