@@ -37,8 +37,8 @@ export const NavBar = ({ setShowLogin }) => {
           <img src={assets.search_icon} alt="search" />
         </div>
         <div className='flex max-sm:flex-col items-start sm:items-center gap-6'>
-          {user && user.role === 'owner' && (
-            <button onClick={() => navigate('/owner')}
+          {user && (
+            <button onClick={() => navigate(user.role === 'owner' ? '/owner' : '/my-bookings')}
               className='cursor-pointer hover:text-primary transition-all'>Dashboard</button>
           )}
           {user ? (
