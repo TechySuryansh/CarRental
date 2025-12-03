@@ -3,155 +3,231 @@ import Car from "../models/Car.js"
 
 //function to check car availability and create booking
 
-export const checkAvailability=async(carId,pickupDate,returnDate)=>{
+export const checkAvailability = async (carId, pickupDate, returnDate) => {
     //check if car is available in the given date range
-    const bookings=await Booking.find({car:carId,
-        pickupDate:{$lt:returnDate},
-        returnDate:{$gt:pickupDate}
+    const bookings = await Booking.find({
+        car: carId,
+        pickupDate: { $lt: returnDate },
+        returnDate: { $gt: pickupDate }
     })
-    return bookings.length===0                  
+    return bookings.length === 0
+}
+
+//api to check availability  of car for the givem date and location
+
+export const checkAvailabilityOfCar = async (req, res) => {
+    try {
+        const { location, pickupDate, returnDate } = req.body
+        const cars = await Car.find({ location, isAvailable: true })
+
+        const availableCarsPromises = cars.map(async (car) => {
+            const isAvailable = await checkAvailability(car._id, new Date(pickupDate), new Date(returnDate))
+            return { ...car._doc, isAvailable }
+
+        })
+
+        let availableCars = await Promise.all(availableCarsPromises)
+        availableCars = availableCars.filter(car => car.isAvailable === true)
+        res.json({ success: true, cars: availableCars })
     }
+    catch (error) {
+        console.log(error.message)
+        return res.json({ success: false, message: error.message })
 
-    //api to check availability  of car for the givem date and location
-
-    export const checkAvailabilityOfCar=async(req,res)=>{
-        try{
-            const {location,pickupDate,returnDate}=req.body
-            const cars=await Car.find({location,isAvailable:true})
-
-            const availableCarsPromises=cars.map(async(car)=>{
-                const isAvailable=await checkAvailability(car._id,new Date(pickupDate),new Date(returnDate))
-                return {...car._doc,isAvailable}
-
-            })
-
-            let availableCars=await Promise.all(availableCarsPromises)
-            availableCars=availableCars.filter(car=>car.isAvailable===true)
-            res.json({success:true,cars:availableCars})
-        }
-        catch(error){
-            console.log(error.message)
-            return res.json({success:false,message:error.message})
-
-        }
     }
+}
 
 
-    //api to create booking
+//api to create booking
 
-    export const createBooking=async(req,res)=>{                            
-        try{
-            const {carId,pickupDate,returnDate}=req.body
-            const { _id } = req.user;
+export const createBooking = async (req, res) => {
+    try {
+        const { carId, pickupDate, returnDate } = req.body
+        const { _id } = req.user;
 
-            const isAvailable=await checkAvailability(carId,new Date(pickupDate),new Date(returnDate))
-            if(!isAvailable){
-                return res.json({success:false,message:"Car not available for the selected dates"})
-            }
-
-            const carData=await Car.findById(carId)
-            
-            if(!carData){
-                return res.json({success:false,message:"Car not found"})
-            }
-
-            //calculate price based on no of days
-            const picked=new Date(pickupDate)
-            const returned=new Date(returnDate)
-            const noOfDays=Math.ceil((returned-picked)/(1000*60*60*24))+1
-            const price=carData.pricePerDay*noOfDays
-            const booking=await Booking.create({car:carId,owner:carData.owner,user:_id,pickupDate,returnDate,price,totalAmount:price})
-            console.log('Booking created:', {bookingId: booking._id, owner: carData.owner, user: _id})
-            res.json({success:true,booking,message:"Booking created successfully"})
+        const isAvailable = await checkAvailability(carId, new Date(pickupDate), new Date(returnDate))
+        if (!isAvailable) {
+            return res.json({ success: false, message: "Car not available for the selected dates" })
         }
-        catch(error){
-            console.log(error.message)
-            return res.json({success:false,message:error.message})
 
+        const carData = await Car.findById(carId)
+
+        if (!carData) {
+            return res.json({ success: false, message: "Car not found" })
         }
+
+        //calculate price based on no of days
+        const picked = new Date(pickupDate)
+        const returned = new Date(returnDate)
+        const noOfDays = Math.ceil((returned - picked) / (1000 * 60 * 60 * 24)) + 1
+        const price = carData.pricePerDay * noOfDays
+        const booking = await Booking.create({ car: carId, owner: carData.owner, user: _id, pickupDate, returnDate, price, totalAmount: price })
+        console.log('Booking created:', { bookingId: booking._id, owner: carData.owner, user: _id })
+        res.json({ success: true, booking, message: "Booking created successfully" })
     }
+    catch (error) {
+        console.log(error.message)
+        return res.json({ success: false, message: error.message })
+
+    }
+}
 
 
 //api to get user bookings
 
-export const getUserBookings=async(req,res)=>{
-    try{
-        const {_id}=req.user
-        const bookings=await Booking.find({user:_id}).populate("car").sort({createdAt:-1})
-        res.json({success:true,bookings})
+export const getUserBookings = async (req, res) => {
+    try {
+        const { _id } = req.user
+        const bookings = await Booking.find({ user: _id }).populate("car").sort({ createdAt: -1 })
+        res.json({ success: true, bookings })
     }
-    catch(error){
+    catch (error) {
         console.log(error.message)
-        return res.json({success:false,message:error.message})
-        
+        return res.json({ success: false, message: error.message })
+
     }
 }
 
 
 //api to get owner bookings
 
-export const getOwnerBookings=async(req,res)=>{
-    try{
+export const getOwnerBookings = async (req, res) => {
+    try {
         console.log('Getting owner bookings for user:', req.user._id, 'role:', req.user.role)
-        
-        if(req.user.role!=="owner"){
-            return res.json({success:false,message:"not authorized"})
+
+        if (req.user.role !== "owner") {
+            return res.json({ success: false, message: "not authorized" })
         }
 
-        const bookings=await Booking.find({owner:req.user._id}).populate("car").populate("user").sort({createdAt:-1})
+        const bookings = await Booking.find({ owner: req.user._id }).populate("car").populate("user").sort({ createdAt: -1 })
         console.log('Found bookings:', bookings.length)
-        res.json({success:true,bookings})       
+        res.json({ success: true, bookings })
     }
-    catch(error){
+    catch (error) {
         console.log(error.message)
-        return res.json({success:false,message:error.message})
-        
+        return res.json({ success: false, message: error.message })
+
     }
 }
 
 //api to change booking status
 
-export const changeBookingStatus=async(req,res)=>{
-    try{
-       const {_id}=req.user
-       const {bookingId,status}=req.body
-       const booking=await Booking.findById(bookingId)
-         if(booking.owner.toString()!==_id.toString()){     
-            return res.json({success:false,message:"not authorized"})
-         }
-         booking.status=status
-         await booking.save()
-         res.json({success:true,message:"Booking status updated"})
+export const changeBookingStatus = async (req, res) => {
+    try {
+        const { _id } = req.user
+        const { bookingId, status } = req.body
+        const booking = await Booking.findById(bookingId)
+        if (booking.owner.toString() !== _id.toString()) {
+            return res.json({ success: false, message: "not authorized" })
+        }
+        booking.status = status
+        await booking.save()
+        res.json({ success: true, message: "Booking status updated" })
     }
-    catch(error){
+    catch (error) {
         console.log(error.message)
-        return res.json({success:false,message:error.message})
-        
+        return res.json({ success: false, message: error.message })
+
     }
 }
 
 //api to delete booking (cancel booking by user)
 
-export const deleteBooking=async(req,res)=>{
-    try{
-        const {_id}=req.user
-        const {bookingId}=req.body
-        const booking=await Booking.findById(bookingId)
-        if(!booking){
-            return res.json({success:false,message:"Booking not found"})
+export const deleteBooking = async (req, res) => {
+    try {
+        const { _id } = req.user
+        const { bookingId } = req.body
+        const booking = await Booking.findById(bookingId)
+        if (!booking) {
+            return res.json({ success: false, message: "Booking not found" })
         }
-        if(booking.user.toString()!==_id.toString()){
-            return res.json({success:false,message:"Not authorized"})
+        if (booking.user.toString() !== _id.toString()) {
+            return res.json({ success: false, message: "Not authorized" })
         }
-        if(booking.status==="completed"){
-            return res.json({success:false,message:"Cannot delete completed booking"})
+        if (booking.status === "completed") {
+            return res.json({ success: false, message: "Cannot delete completed booking" })
         }
         await booking.deleteOne()
-        res.json({success:true,message:"Booking cancelled successfully"})
+        res.json({ success: true, message: "Booking cancelled successfully" })
     }
-    catch(error){
+    catch (error) {
         console.log(error.message)
-        return res.json({success:false,message:error.message})
+        return res.json({ success: false, message: error.message })
     }
 }
 
+
+//api to update booking
+export const updateBooking = async (req, res) => {
+    try {
+        const { _id } = req.user;
+        const { bookingId, pickupDate, returnDate } = req.body;
+
+        const booking = await Booking.findById(bookingId);
+        if (!booking) {
+            return res.json({ success: false, message: "Booking not found" });
+        }
+
+        if (booking.user.toString() !== _id.toString()) {
+            return res.json({ success: false, message: "Not authorized" });
+        }
+
+        if (booking.status === "completed" || booking.status === "cancelled") {
+            return res.json({ success: false, message: "Cannot update completed or cancelled booking" });
+        }
+
+        // Check availability excluding the current booking
+        // We need to check if the car is available for the NEW dates, 
+        // but we shouldn't count the current booking's time slot as "occupied" by itself.
+        // However, the checkAvailability function checks ALL bookings.
+        // So we need a custom check or modify checkAvailability.
+        // Let's do a custom check here for simplicity and safety.
+
+        const conflictingBookings = await Booking.find({
+            car: booking.car,
+            _id: { $ne: bookingId }, // Exclude current booking
+            status: { $ne: "cancelled" }, // Exclude cancelled bookings
+            pickupDate: { $lt: new Date(returnDate) },
+            returnDate: { $gt: new Date(pickupDate) }
+        });
+
+        if (conflictingBookings.length > 0) {
+            return res.json({ success: false, message: "Car not available for the selected dates" });
+        }
+
+        const carData = await Car.findById(booking.car);
+        if (!carData) {
+            return res.json({ success: false, message: "Car not found" });
+        }
+
+        // Calculate new price
+        const picked = new Date(pickupDate);
+        const returned = new Date(returnDate);
+        const noOfDays = Math.ceil((returned - picked) / (1000 * 60 * 60 * 24)) + 1;
+
+        if (noOfDays <= 0) {
+            return res.json({ success: false, message: "Invalid dates" });
+        }
+
+        const price = carData.pricePerDay * noOfDays;
+
+        booking.pickupDate = pickupDate;
+        booking.returnDate = returnDate;
+        booking.price = price;
+        booking.totalAmount = price;
+
+        // If it was confirmed, maybe we should reset to pending? 
+        // For now let's keep the status as is unless it was pending.
+        // If the user updates, usually it's fine to keep it confirmed if it was confirmed, 
+        // but maybe the owner needs to re-approve?
+        // Let's keep it simple: if it's pending, it stays pending. If confirmed, it stays confirmed.
+
+        await booking.save();
+
+        res.json({ success: true, message: "Booking updated successfully", booking });
+
+    } catch (error) {
+        console.log(error.message);
+        return res.json({ success: false, message: error.message });
+    }
+};

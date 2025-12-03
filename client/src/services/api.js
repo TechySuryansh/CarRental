@@ -66,8 +66,10 @@ export const bookingAPI = {
   createBooking: (bookingData) => api.post('/api/booking/create-booking', bookingData),
   getUserBookings: () => api.get('/api/booking/user-bookings'),
   getOwnerBookings: () => api.get('/api/booking/owner-bookings'),
-  changeBookingStatus: (bookingId, status) => 
+  changeBookingStatus: (bookingId, status) =>
     api.post('/api/booking/change-booking-status', { bookingId, status }),
+  updateBooking: (data) => api.post('/api/booking/update-booking', data),
+  deleteBooking: (bookingId) => api.post('/api/booking/delete-booking', { bookingId }),
 };
 
 export default api;
