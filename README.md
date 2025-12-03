@@ -131,8 +131,8 @@ npm run dev
 ```
 
 6. **Access the application**
-- Frontend: http://localhost:5173
-- Backend: http://localhost:3000
+- Frontend: https://car-rental-flame-xi.vercel.app/
+- Backend: https://carrental-sjyq.onrender.com
 
 ## 📚 Documentation
 
